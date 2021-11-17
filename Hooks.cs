@@ -22,7 +22,7 @@ namespace SpecFlowLambdaSample
         private LambdaTestDriver LTDriver;
         private string[] tags;
         private ScenarioContext _scenarioContext;
-
+        
         [BeforeScenario]
         public void BeforeScenario(ScenarioContext ScenarioContext)
         {
@@ -31,11 +31,17 @@ namespace SpecFlowLambdaSample
             ScenarioContext["LTDriver"] = LTDriver;
         }
 
-
-
         [AfterScenario]
         public void AfterScenario()
         {
+             if (_scenarioContext.TestError != null)
+             {
+                    SetTestStatus(false);
+             }
+            else
+            {
+               SetTestStatus(false);
+            }
             LTDriver.Cleanup();
         }
     }
@@ -99,10 +105,16 @@ namespace SpecFlowLambdaSample
             Console.WriteLine(driver);
             return driver;
         }
+        
+        public void SetTestStatus(bool passStatus)
+        {
+            var status = passStatus ? "passed" : "failed";
+           ((IJavaScriptExecutor)WebDriver.Current).ExecuteScript($"lambda-status={status}");
+        }
 
         public void Cleanup()
         {
-
+            
             //passingthehooks
             bool passed = TestContext.CurrentContext.Result.Outcome.Status == NUnit.Framework.Interfaces.TestStatus.Passed;
 
@@ -110,10 +122,7 @@ namespace SpecFlowLambdaSample
 
             ((IJavaScriptExecutor)driver).ExecuteScript($"lambda-status={status}");
             // Terminates the remote webdriver session
-            driver.Quit();
-            
-            
-            
+            driver.Quit();    
         }
     }
 }
